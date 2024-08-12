@@ -1,0 +1,70 @@
+---
+title: "SRM-model"
+author: "Daniel J McKeown"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r Load in data}
+
+install.packages("here")
+library(here)
+
+#Use "here' to define data path relative to the root of your project.
+data_path <- here("Data", "combined_data.csv")
+data <- read.csv(data_path)
+
+```
+
+
+
+```{r rlm}
+# Load necessary libraries
+library(MASS)
+library(interactions)
+library(ggplot2)
+
+# Fit the lm model - specify the cog variable and aperiodic variable of interest
+fit <- lm(VFT ~ occipital_exponent +  age + occipital_exponent*age, data = data)
+
+# Summarize the model to inspect terms
+summary(fit)
+
+# Use sim_slopes to probe interaction and generate Johnson-Neyman plot - specify the cog variable and aperiodic variable of interest
+jn_result <- sim_slopes(fit, pred = "occipital_exponent", modx = "age", jnplot = TRUE
+  )
+
+# Extract the Johnson-Neyman plot from the result
+jn_plot <- jn_result$jnplot
+
+# Customize the axis titles for the Johnson-Neyman plot
+custom_jn_plot <- jn_plot +
+  labs(
+    x = "IAPF",                     
+    y = "Slope of offset average"
+  ) +
+  ggtitle("") +
+  xlim(17, 71)  # Set the range of the x-axis
+
+custom_jn_plot
+
+#Extract the interaction plot - specify the cog variable and aperiodic variable of interest
+interaction_plot <- interact_plot(
+  fit, pred = occipital_exponent, modx = age, interval=TRUE, plot.points = TRUE,
+  )
+
+custom_int_plot <- interaction_plot +
+  labs(
+    x = "Scalp-wide \noffset (uV2)",
+    y = "CWIT (sec)"
+  )
+
+custom_int_plot
+
+simple_slopes_output <- jn_result$slopes
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
